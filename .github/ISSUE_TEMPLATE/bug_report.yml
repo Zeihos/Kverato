@@ -1,0 +1,46 @@
+name: "Ошибка КВЕРАТО"
+description: "Сообщить об ошибке VK, Telegram или Discord"
+title: "[BUG] "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Спасибо за сообщение! Не прикрепляйте токены, файлы .env, базы игроков и необработанные логи с личными данными.
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Платформа
+      options:
+        - ВКонтакте
+        - Telegram
+        - Discord
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Версия
+      placeholder: "Например, 1.0"
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Как воспроизвести
+      description: "Последовательность команд и действий"
+      placeholder: "1. Запускаю бота... 2. Выполняю команду..."
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Ожидаемое и фактическое поведение
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Очищенный лог (необязательно)
+      description: "Скройте токены, ссылки с секретами и личные данные пользователей."
+      render: text

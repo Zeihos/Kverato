@@ -1,0 +1,17 @@
+# При клонировании под Windows сохранить CRLF в запускателях.
+*.bat -text
+
+# Текстовый код и документация.
+*.py text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.svg text eol=lf
+*.html text eol=lf
+
+# Графика и релизные архивы всегда бинарные.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.zip binary

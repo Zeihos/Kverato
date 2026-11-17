@@ -45,7 +45,7 @@ def audit(root: Path):
     platforms = {}
     for label, (filename, tag) in RELEASES.items():
         prefix = f"KVERATO-{tag}-v1.0/"
-        raw = read_zip(root / filename)
+        raw = read_zip(root / "releases" / "v1.0" / filename)
         if any(not name.startswith(prefix) for name in raw):
             raise ValueError(f"Посторонние файлы в архиве {label}")
         files = {name[len(prefix):]: data for name, data in raw.items()}
@@ -72,7 +72,7 @@ def audit(root: Path):
             raise ValueError(f"{label}: недостаточно Python-модулей")
         platforms[label] = files
         print(f"OK {label}: {len(files)} файлов, {n} Python-модулей")
-    full = read_zip(root / "KVERATO-v1.0-FULL-RELEASE.zip")
+    full = read_zip(root / "releases" / "v1.0" / "KVERATO-v1.0-FULL-RELEASE.zip")
     for label, originals in platforms.items():
         prefix = f"KVERATO-v1.0-FULL/{label}/"
         extracted = {name[len(prefix):]: data for name, data in full.items()
