@@ -1,0 +1,36 @@
+# Приватные ключи и конфигурация
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.token
+
+# Игровые данные
+*.sqlite
+*.sqlite3
+*.sqlite3-*
+*.db
+*.db-*
+backups/
+data/
+*.bak
+
+# Python и тесты
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+*.egg-info/
+.coverage
+
+# IDE и ОС
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
