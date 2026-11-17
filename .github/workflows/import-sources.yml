@@ -1,0 +1,48 @@
+name: КВЕРАТО · импорт исходников из v1.0
+
+on:
+  push:
+    paths:
+      - ".github/workflows/import-sources.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    name: Перенести исходники в bots/
+    runs-on: ubuntu-latest
+    steps:
+      - name: Получить репозиторий
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Подготовить Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Проверить исходные релизы
+        run: python tools/release_audit.py
+      - name: Однократно извлечь исходный код
+        shell: bash
+        run: |
+          if [ -f bots/vk/main.py ]; then
+            echo "Исходники уже существуют: повторный импорт пропущен."
+          else
+            python tools/import_sources.py
+          fi
+      - name: Проверить Python после переноса
+        run: python -m compileall -q bots
+      - name: Зафиксировать исходники в GitHub
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A bots/
+          if git diff --cached --quiet; then
+            echo "Изменений нет."
+          else
+            git commit -m "build: import editable VK, Telegram and Discord 1.0 sources"
+            git push origin HEAD:main
+          fi
