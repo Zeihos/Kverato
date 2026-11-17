@@ -1,36 +1,46 @@
-# Приватные ключи и конфигурация
+# Секреты и конфигурация окружения
 .env
 .env.*
 !.env.example
+*.token
 *.pem
 *.key
-*.token
+*.p12
+*.pfx
 
-# Игровые данные
+# Приватные базы и резервные копии
+data/
+backups/
 *.sqlite
 *.sqlite3
 *.sqlite3-*
+*.sqlite3.sha256
 *.db
 *.db-*
-backups/
-data/
+*.db.sha256
 *.bak
+*.backup
 
-# Python и тесты
+# Python и виртуальные окружения (включая .venv312 в VK/TG)
 __pycache__/
 *.py[cod]
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
-.venv/
+.venv*/
 venv/
+env/
 *.egg-info/
 .coverage
+htmlcov/
+build/
+dist/
 
-# IDE и ОС
+# Логи, локальная IDE и ОС
+*.log
+*.tmp
+*.pid
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
-*.log
-*.tmp

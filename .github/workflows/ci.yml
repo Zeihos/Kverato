@@ -35,24 +35,26 @@ jobs:
           PY
       - name: Проверить ссылки документации
         run: python tools/check_docs_links.py
+      - name: Проверить рабочие файлы, токены и Windows BAT
+        run: python tools/repo_health.py
       - name: Проверить игровые операции и SQLite всех платформ
         run: python tools/core_smoke.py
-      - name: Проверить отсутствие секретов
-        shell: bash
-        run: |
-          python - <<'PY'
-          import subprocess
-          from pathlib import PurePosixPath
-          forbidden = {".env", "__pycache__", ".pytest_cache"}
-          tracked = subprocess.check_output(["git", "ls-files", "-z"]).split(b"\0")
-          for raw in tracked:
-              if not raw:
-                  continue
-              name = raw.decode("utf-8")
-              path = PurePosixPath(name)
-              if any(p in forbidden for p in path.parts):
-                  raise SystemExit(f"Приватный файл в Git: {path}")
-              if path.suffix.lower() in {".sqlite", ".sqlite3", ".pyc", ".pem", ".key"}:
-                  raise SystemExit(f"Приватный файл в Git: {path}")
-          print("Секретов, баз данных и кэша среди отслеживаемых файлов нет")
-          PY
+
+  windows:
+    name: Windows · игровой Smoke Test
+    runs-on: windows-latest
+    timeout-minutes: 12
+    env:
+      PYTHONUTF8: "1"
+      PYTHONIOENCODING: "utf-8"
+    steps:
+      - name: Получить исходники
+        uses: actions/checkout@v4
+      - name: Установить Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Проверить BAT и защиту пользовательских файлов
+        run: python tools/repo_health.py
+      - name: Проверить операции SQLite на Windows
+        run: python tools/core_smoke.py

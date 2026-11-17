@@ -27,12 +27,16 @@ with tempfile.TemporaryDirectory() as folder:
         before = con.execute(
             "SELECT coins FROM players WHERE platform=? AND user_id=?",
             (PLATFORM, "player-101")).fetchone()[0]
-    assert game.handle(player, "daily")
+    from concurrent.futures import ThreadPoolExecutor
+    # Eight simultaneous events must still award the first daily bonus only once.
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        replies = list(pool.map(lambda _: game.handle(player, "daily"), range(8)))
+    assert all(replies)
     with database.connect() as con:
         after = con.execute(
             "SELECT coins FROM players WHERE platform=? AND user_id=?",
             (PLATFORM, "player-101")).fetchone()[0]
-    assert after > before, (before, after)
+    assert after == before + 200, (before, after)
     assert game.handle(player, "daily")
     with database.connect() as con:
         repeat = con.execute(
