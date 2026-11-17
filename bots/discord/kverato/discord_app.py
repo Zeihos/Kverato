@@ -38,6 +38,7 @@ DIRECT = {
     'profile': ('profile', 'Игровой профиль и карточка'),
     'balance': ('balance', 'Монеты и банк'),
     'daily': ('daily', 'Получить ежедневный бонус'),
+    'weekly': ('weekly', 'Получить награду раз в 7 дней'),
     'work': ('work', 'Выполнить работу'),
     'level': ('level', 'Уровень персонажа'),
     'stats': ('stats', 'Статистика игрока'),
@@ -82,7 +83,7 @@ DIRECT = {
 
 NAV = [
     ('👤 Профиль', 'profile'), ('💰 Баланс', 'balance'),
-    ('🎁 Бонус', 'daily'), ('💼 Работа', 'work'),
+    ('🎁 Бонус', 'daily'), ('🗓 Неделя', 'weekly'), ('💼 Работа', 'work'),
     ('🎮 Игры', 'games'), ('🏆 Рейтинг', 'top'),
     ('🛒 Магазин', 'shop'), ('👑 Кланы', 'clan'),
     ('📚 Каталог', 'catalog'), ('🌠 Сезон', 'season'),
@@ -94,7 +95,7 @@ NAV = [
 HELP = '''👑 КВЕРАТО — игровой Discord-бот
 
 👤 /start · /profile · /balance · /stats · /achievements
-💰 /daily · /work · /bank · /deposit · /withdraw
+💰 /daily · /weekly · /work · /bank · /deposit · /withdraw
 🎮 /games · /coin · /dice · /slots · /rps
 🛒 /shop · /buy · /inventory · /market · /craft
 👑 /clan · /clantop · /season · /quests · /claim
@@ -146,7 +147,7 @@ VK и Telegram используют отдельные базы. Бот не з�
 
 GUIDE_SECTIONS = (
     ('start', '🏠 Начало', '👑 **Начало игры**\n/start — регистрация\n/menu — главное меню\n/profile — профиль\n/player — публичная статистика участника\n/compare — сравнение двоих\n/help — общий список команд'),
-    ('money', '💰 Экономика', '💰 **Заработок и банк**\n/balance · /daily · /work\n/bank · /deposit · /withdraw\n/transfer — перевод игроку\n/transfers — история переводов\n/economy — все способы заработка'),
+    ('money', '💰 Экономика', '💰 **Заработок и банк**\n/balance · /daily · /weekly · /work\n/bank · /deposit · /withdraw\n/transfer — перевод игроку\n/transfers — история переводов\n/economy — все способы заработка'),
     ('games', '🎮 Игры', '🎮 **Развлечения**\n/games · /coin · /dice · /slots · /rps\n/duel · /duels · /duelstats · /duelhistory\n/accept · /decline · /cancelduel'),
     ('city', '🌆 Город', '🌆 **Покупки и развитие**\n/city · /businesses · /business\n/shop · /buy · /inventory · /market\n/garage · /pets · /craft · /materials'),
     ('social', '👥 Общение', '👥 **Друзья и рейтинги**\n/friend · /friends · /friendaction\n/friendtop — рейтинг друзей\n/top · /topxp · /topwins\n/clan · /clantop'),

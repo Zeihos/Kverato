@@ -47,6 +47,7 @@ ALIASES = {
     'balance': 'balance', 'баланс': 'balance',
     'level': 'level', 'уровень': 'level', 'ранг': 'level',
     'daily': 'daily', 'ежедневно': 'daily', 'бонус': 'daily',
+    'weekly': 'weekly', 'неделя': 'weekly', 'еженедельно': 'weekly',
     'work': 'work', 'работа': 'work', 'работать': 'work',
     'coin': 'coin', 'монетка': 'coin', 'орелрешка': 'coin',
     'dice': 'dice', 'кубик': 'dice',
@@ -266,7 +267,7 @@ class BotService:
 профиль · уровень · достижения · инвентарь
 
 💰 ЭКОНОМИКА
-баланс · банк · работа · профессии · бизнесы
+баланс · банк · бонус · неделя · работа · профессии · бизнесы
 
 🛍 ПОКУПКИ И ИМУЩЕСТВО
 магазин · питомцы · контейнеры · дом · гараж
@@ -289,7 +290,7 @@ class BotService:
                     '📚 каталог — полные списки товаров и систем\n'
                     '👤 профиль / баланс / уровень / статистика\n'
                     '💼 работа / профессии / профессия курьер / карьера\n'
-                    '🎁 бонус / задания / награда / серия\n'
+                    '🎁 бонус / неделя / задания / награда / серия\n'
                     '🏦 банк / вклад 100 / снять 100 / перевести ID 50\n'
                     '🏢 бизнесы / бизнес / бизнес купить мастерская\n'
                     '🐾 питомец / питомец каталог / питомец купить ember\n'
@@ -438,6 +439,28 @@ class BotService:
                               WHERE platform=? AND user_id=?''', (amount, now, streak, ctx.platform, ctx.user_id))
                 gained = unlock(con, ctx, 'streak3', now) if streak >= 3 else False
             return (f'🎁 Ежедневный бонус: +200 монет! 🔥 Серия: {streak}.' + (f' Дополнительно за серию: +{amount-200} монет.' if amount > 200 else '') + (suffix(['🔥 Постоянный гость']) if gained else ''))
+        if cmd == 'weekly':
+            reward = 1000
+            cooldown = 7 * 24 * 3600
+            with self.db.transaction() as con:
+                player = self._player(con, ctx)
+                previous = con.execute('''SELECT claimed_at FROM weekly_rewards
+                    WHERE platform=? AND user_id=?''',
+                    (ctx.platform, ctx.user_id)).fetchone()
+                if previous is not None:
+                    remaining = cooldown - (now - previous['claimed_at'])
+                    if remaining > 0:
+                        return f'🗓 Еженедельная награда уже получена. Возвращайся через {duration(remaining)}.'
+                if player['coins'] > MAX_WALLET - reward:
+                    return '❌ Кошелёк заполнен. Перенеси часть монет в банк.'
+                con.execute('''UPDATE players SET coins=coins+?
+                    WHERE platform=? AND user_id=?''',
+                    (reward, ctx.platform, ctx.user_id))
+                con.execute('''INSERT INTO weekly_rewards (platform, user_id, claimed_at)
+                    VALUES (?, ?, ?) ON CONFLICT(platform, user_id)
+                    DO UPDATE SET claimed_at=excluded.claimed_at''',
+                    (ctx.platform, ctx.user_id, now))
+            return '🎁 Еженедельная награда: +1 000 монет! Следующая — через 7 дней.'
         if cmd == 'work':
             with self.db.transaction() as con:
                 p = self._player(con, ctx)

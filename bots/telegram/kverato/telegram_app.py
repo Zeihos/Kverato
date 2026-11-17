@@ -268,6 +268,7 @@ class TelegramApp:
                 '/profile — профиль и карточка\n'
                 '/balance — баланс\n'
                 '/daily — ежедневная награда\n'
+                '/weekly — награда раз в 7 дней\n'
                 '/work — работа\n'
                 '/games — игры\n'
                 '/shop — магазин\n'

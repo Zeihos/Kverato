@@ -1,4 +1,4 @@
-"""КВЕРАТО VK v1.0: official bot entrypoint."""
+"""КВЕРАТО VK: game bot entrypoint (1.1 development)."""
 from __future__ import annotations
 
 import argparse
@@ -16,7 +16,7 @@ from kverato.service import BotService
 def main() -> None:
     project = Path(__file__).resolve().parent
     load_dotenv(project / '.env')
-    parser = argparse.ArgumentParser(description='КВЕРАТО VK v1.0 — официальный релиз')
+    parser = argparse.ArgumentParser(description='КВЕРАТО VK — версия для разработки')
     parser.add_argument('platform', nargs='?', choices=('vk',), default='vk')
     args = parser.parse_args()
     if not os.getenv('VK_TOKEN'):
