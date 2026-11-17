@@ -39,12 +39,18 @@ jobs:
         shell: bash
         run: |
           python - <<'PY'
-          from pathlib import Path
+          import subprocess
+          from pathlib import PurePosixPath
           forbidden = {".env", "__pycache__", ".pytest_cache"}
-          for path in Path("bots").rglob("*"):
+          tracked = subprocess.check_output(["git", "ls-files", "-z"]).split(b"\0")
+          for raw in tracked:
+              if not raw:
+                  continue
+              name = raw.decode("utf-8")
+              path = PurePosixPath(name)
               if any(p in forbidden for p in path.parts):
-                  raise SystemExit(f"Секрет или кэш в репозитории: {path}")
-              if path.is_file() and path.suffix.lower() in {".sqlite", ".sqlite3", ".pyc", ".pem", ".key"}:
-                  raise SystemExit(f"Приватный файл в репозитории: {path}")
-          print("Приватных файлов в исходниках не обнаружено")
+                  raise SystemExit(f"Приватный файл в Git: {path}")
+              if path.suffix.lower() in {".sqlite", ".sqlite3", ".pyc", ".pem", ".key"}:
+                  raise SystemExit(f"Приватный файл в Git: {path}")
+          print("Секретов, баз данных и кэша среди отслеживаемых файлов нет")
           PY
