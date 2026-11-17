@@ -1,0 +1,39 @@
+name: "Предложить улучшение"
+description: "Идея для КВЕРАТО VK, Telegram или Discord"
+title: "[FEATURE] "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Опишите задачу, которую решит функция. Не публикуйте токены, пользовательские базы и приватные данные.
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Платформа
+      options:
+        - Все платформы
+        - ВКонтакте
+        - Telegram
+        - Discord
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: В чём проблема?
+      placeholder: "Сейчас игрокам неудобно..."
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Как должно работать?
+      placeholder: "Предлагаю добавить..."
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Дополнительно
+      description: "Примеры использования или изображения — при наличии."

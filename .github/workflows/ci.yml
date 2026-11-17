@@ -33,6 +33,8 @@ jobs:
               compile(path.read_bytes().decode("utf-8-sig"), str(path), "exec")
           print(f"Python: {len(paths)} модулей проверены")
           PY
+      - name: Проверить ссылки документации
+        run: python tools/check_docs_links.py
       - name: Проверить игровые операции и SQLite всех платформ
         run: python tools/core_smoke.py
       - name: Проверить отсутствие секретов
