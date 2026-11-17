@@ -1,4 +1,4 @@
-"""KVERATO Discord v1.0 RELEASE. Configure .env, install dependencies and run main.py."""
+"""KVERATO Discord development build. Configure .env, install dependencies and run main.py."""
 from __future__ import annotations
 
 import logging

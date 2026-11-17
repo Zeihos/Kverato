@@ -11,6 +11,7 @@
    ~~~powershell
    python tools/release_audit.py
    python tools/core_smoke.py
+   python tools/weekly_smoke.py
    python tools/repo_health.py
    python tools/check_docs_links.py
    ~~~

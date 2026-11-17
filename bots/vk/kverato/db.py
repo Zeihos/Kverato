@@ -610,6 +610,17 @@ class Database:
                 CREATE INDEX IF NOT EXISTS idx_clan_expedition_daily
                     ON clan_expeditions(platform,clan_id,utc_day);
             ''')
+            # A separate ledger safely upgrades existing v1.0 databases.
+            con.execute('''
+                CREATE TABLE IF NOT EXISTS weekly_rewards (
+                    platform TEXT NOT NULL,
+                    user_id TEXT NOT NULL,
+                    claimed_at INTEGER NOT NULL CHECK(claimed_at >= 0),
+                    PRIMARY KEY(platform, user_id),
+                    FOREIGN KEY(platform, user_id)
+                        REFERENCES players(platform, user_id) ON DELETE CASCADE
+                )
+            ''')
             # Idempotent migration: add columns without replacing old player rows.
             columns = {row['name'] for row in con.execute('PRAGMA table_info(players)')}
             for name, definition in (
