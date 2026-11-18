@@ -449,7 +449,13 @@ class BotService:
 
             def status(last_claim: int, cooldown: int) -> str:
                 remaining = cooldown - (now - last_claim) if last_claim else 0
-                return f'⏳ через {duration(remaining)}' if remaining > 0 else '✅ доступно'
+                if remaining <= 0:
+                    return '✅ доступно'
+                days, tail = divmod(remaining, 24 * 3600)
+                parts = ([f'{days} д'] if days else [])
+                if tail:
+                    parts.append(duration(tail))
+                return '⏳ через ' + ' '.join(parts)
 
             daily = status(player['daily_at'], 24 * 3600)
             week = status(last_week['claimed_at'] if last_week else 0, 7 * 24 * 3600)
