@@ -56,6 +56,7 @@ with TemporaryDirectory() as folder:
 
     waiting = service.handle(player, "/rewards")
     assert waiting.count("⏳ через") == 3, waiting
+    assert "7 д" in waiting, waiting
     assert state() == current, "Просмотр ошибочно повторил начисление"
     time_now[0] += 30 * 60
     middle = service.handle(player, "награды")
