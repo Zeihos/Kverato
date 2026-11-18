@@ -27,7 +27,7 @@ SECTION_TITLES = {
 BUTTONS = {
     'main': (
         ('👤 Профиль', 'profile'), ('💰 Баланс', 'balance'),
-        ('👤 Персонаж', '@profile'), ('💰 Экономика', '@economy'),
+        ('🎁 Награды', 'rewards'), ('👤 Персонаж', '@profile'), ('💰 Экономика', '@economy'),
         ('🎮 Игры', '@games'), ('🤝 Игроки', '@social'),
         ('🌆 Город', '@world'),
         ('🛍 Покупки', '@shop'), ('🏆 Рейтинги', '@ratings'),
@@ -44,6 +44,7 @@ BUTTONS = {
     ),
     'economy': (
         ('💰 Баланс', 'balance'), ('🏦 Банк', 'bank'),
+        ('🎁 Награды и таймеры', 'rewards'),
         ('💼 Профессии', 'jobs'), ('🏢 Бизнесы', 'businesses'),
         ('🏠 Недвижимость', 'home'), ('🚘 Транспорт', 'vehicle'),
         ('📦 Ресурсы', 'materials'), ('🏭 Производство', 'chains'),
@@ -90,7 +91,7 @@ BUTTONS = {
 }
 
 # Expedition with zero arguments shows status only (never starts a run).
-SAFE_COMMANDS = frozenset(CARD_COMMANDS) | frozenset({'expedition', 'duel', 'rep', 'duelhistory', 'rules', 'privacy'})
+SAFE_COMMANDS = frozenset(CARD_COMMANDS) | frozenset({'expedition', 'duel', 'rep', 'duelhistory', 'rules', 'privacy', 'rewards'})
 MENU_ALIASES = frozenset({'menu', 'меню'})
 
 

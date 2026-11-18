@@ -269,6 +269,7 @@ class TelegramApp:
                 '/balance — баланс\n'
                 '/daily — ежедневная награда\n'
                 '/weekly — награда раз в 7 дней\n'
+                '/rewards — таймеры наград и работы\n'
                 '/work — работа\n'
                 '/games — игры\n'
                 '/shop — магазин\n'

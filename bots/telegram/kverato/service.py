@@ -48,6 +48,7 @@ ALIASES = {
     'level': 'level', 'уровень': 'level', 'ранг': 'level',
     'daily': 'daily', 'ежедневно': 'daily', 'бонус': 'daily',
     'weekly': 'weekly', 'неделя': 'weekly', 'еженедельно': 'weekly',
+    'rewards': 'rewards', 'награды': 'rewards', 'таймеры': 'rewards',
     'work': 'work', 'работа': 'work', 'работать': 'work',
     'coin': 'coin', 'монетка': 'coin', 'орелрешка': 'coin',
     'dice': 'dice', 'кубик': 'dice',
@@ -267,7 +268,7 @@ class BotService:
 профиль · уровень · достижения · инвентарь
 
 💰 ЭКОНОМИКА
-баланс · банк · бонус · неделя · работа · профессии · бизнесы
+баланс · награды · банк · бонус · неделя · работа · профессии · бизнесы
 
 🛍 ПОКУПКИ И ИМУЩЕСТВО
 магазин · питомцы · контейнеры · дом · гараж
@@ -290,7 +291,7 @@ class BotService:
                     '📚 каталог — полные списки товаров и систем\n'
                     '👤 профиль / баланс / уровень / статистика\n'
                     '💼 работа / профессии / профессия курьер / карьера\n'
-                    '🎁 бонус / неделя / задания / награда / серия\n'
+                    '🎁 награды / бонус / неделя / задания / награда / серия\n'
                     '🏦 банк / вклад 100 / снять 100 / перевести ID 50\n'
                     '🏢 бизнесы / бизнес / бизнес купить мастерская\n'
                     '🐾 питомец / питомец каталог / питомец купить ember\n'
@@ -439,6 +440,28 @@ class BotService:
                               WHERE platform=? AND user_id=?''', (amount, now, streak, ctx.platform, ctx.user_id))
                 gained = unlock(con, ctx, 'streak3', now) if streak >= 3 else False
             return (f'🎁 Ежедневный бонус: +200 монет! 🔥 Серия: {streak}.' + (f' Дополнительно за серию: +{amount-200} монет.' if amount > 200 else '') + (suffix(['🔥 Постоянный гость']) if gained else ''))
+        if cmd == 'rewards':
+            with self.db.connect() as con:
+                player = self._player(con, ctx)
+                last_week = con.execute('''SELECT claimed_at FROM weekly_rewards
+                    WHERE platform=? AND user_id=?''',
+                    (ctx.platform, ctx.user_id)).fetchone()
+
+            def status(last_claim: int, cooldown: int) -> str:
+                remaining = cooldown - (now - last_claim) if last_claim else 0
+                return f'⏳ через {duration(remaining)}' if remaining > 0 else '✅ доступно'
+
+            daily = status(player['daily_at'], 24 * 3600)
+            week = status(last_week['claimed_at'] if last_week else 0, 7 * 24 * 3600)
+            work = status(player['work_at'], 30 * 60)
+            note = ('\n⚠️ Кошелёк заполнен — освободи место для наград.'
+                    if player['coins'] >= MAX_WALLET else '')
+            return (f'🎁 КВЕРАТО | НАГРАДЫ И ТАЙМЕРЫ\n\n'
+                    f'🎁 Ежедневный бонус — {daily}\n'
+                    f'🗓 Недельный бонус (+1 000) — {week}\n'
+                    f'💼 Работа — {work}\n\n'
+                    'Получить: бонус · неделя · работа.\n'
+                    'ℹ️ Просмотр не забирает награды.' + note)
         if cmd == 'weekly':
             reward = 1000
             cooldown = 7 * 24 * 3600

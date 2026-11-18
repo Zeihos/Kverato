@@ -41,6 +41,8 @@ jobs:
         run: python tools/core_smoke.py
       - name: Проверить еженедельные награды и миграцию с v1.0
         run: python tools/weekly_smoke.py
+      - name: Проверить экран таймеров и отсутствие лишних начислений
+        run: python tools/rewards_smoke.py
 
   windows:
     name: Windows · игровой Smoke Test
@@ -62,3 +64,5 @@ jobs:
         run: python tools/core_smoke.py
       - name: Проверить еженедельные награды на Windows
         run: python tools/weekly_smoke.py
+      - name: Проверить экран таймеров на Windows
+        run: python tools/rewards_smoke.py
