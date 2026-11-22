@@ -677,9 +677,9 @@ class BotService:
             for timestamp, _, _, label in selected:
                 stamp = datetime.fromtimestamp(timestamp, timezone.utc).strftime('%d.%m %H:%M UTC')
                 lines.append(f'• {stamp} — {label}')
-            suffix = '+' if total > 200 and pages == 20 else ''
+            overflow_marker = '+' if total > 200 and pages == 20 else ''
             return (f'🧾 ВЫПИСКА КВЕРАТО | {titles[mode]}\n'
-                    f'Страница {page}/{pages}{suffix} • Записей: {total}\n'
+                    f'Страница {page}/{pages}{overflow_marker} • Записей: {total}\n'
                     + '\n'.join(lines)
                     + '\nℹ️ Только в личных сообщениях. Фильтры: '
                       'входящие / исходящие / переводы / покупки.')
