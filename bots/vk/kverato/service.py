@@ -578,18 +578,75 @@ class BotService:
         if cmd == 'statement':
             if ctx.group:
                 return '🔒 Личная выписка доступна только в сообщениях с ботом.'
-            # Collect only this player's records, strictly scoped to one platform.
-            # This is display-only; it does not reserve, send or charge any coins.
+            # Only a private read: never transfer coins, and never accept a user ID.
+            # Pagination is capped to protect SQLite and the platform message limit.
+            categories = {
+                'все': 'all', 'all': 'all',
+                'переводы': 'transfers', 'transfers': 'transfers',
+                'входящие': 'incoming', 'incoming': 'incoming',
+                'исходящие': 'outgoing', 'outgoing': 'outgoing',
+                'покупки': 'purchases', 'purchases': 'purchases',
+            }
+            help_text = ('🧾 Выписка: выписка [все | переводы | входящие | '
+                         'исходящие | покупки] [страница 1–20]. '
+                         'Пример: выписка входящие 2.')
+            mode = 'all'
+            if args and args[0].casefold() in categories:
+                mode = categories[args[0].casefold()]
+                args = args[1:]
+            if len(args) > 1:
+                return help_text
+            page = 1
+            if args:
+                value = args[0]
+                if (not value.isascii() or not value.isdecimal() or len(value) > 2
+                        or value.startswith('0')):
+                    return help_text
+                page = int(value)
+                if not 1 <= page <= 20:
+                    return help_text
+
+            titles = {
+                'all': 'ВСЕ ОПЕРАЦИИ', 'transfers': 'ПЕРЕВОДЫ',
+                'incoming': 'ВХОДЯЩИЕ', 'outgoing': 'ИСХОДЯЩИЕ',
+                'purchases': 'ПОКУПКИ ЗНАЧКОВ',
+            }
+            # Fetch the first N matching records per source. Both sorted streams
+            # can contribute at most N entries to the first N in their union.
+            limit = page * 10
+            transfers = []
+            purchases = []
+            total_transfers = 0
+            total_purchases = 0
             with closing(self.db.connect()) as con:
-                transfers = con.execute('''SELECT id,from_user_id,to_user_id,amount,created_at
-                    FROM transfers WHERE platform=?
-                        AND (from_user_id=? OR to_user_id=?)
-                    ORDER BY created_at DESC,id DESC LIMIT 10''',
-                    (ctx.platform, ctx.user_id, ctx.user_id)).fetchall()
-                purchases = con.execute('''SELECT item_key,purchased_at FROM purchases
-                    WHERE platform=? AND user_id=?
-                    ORDER BY purchased_at DESC,rowid DESC LIMIT 10''',
-                    (ctx.platform, ctx.user_id)).fetchall()
+                if mode != 'purchases':
+                    if mode == 'incoming':
+                        predicate = 'to_user_id=?'
+                        params = (ctx.platform, ctx.user_id)
+                    elif mode == 'outgoing':
+                        predicate = 'from_user_id=?'
+                        params = (ctx.platform, ctx.user_id)
+                    else:
+                        predicate = '(from_user_id=? OR to_user_id=?)'
+                        params = (ctx.platform, ctx.user_id, ctx.user_id)
+                    where = 'platform=? AND ' + predicate  # Only fixed SQL fragments.
+                    total_transfers = con.execute(
+                        'SELECT COUNT(*) FROM transfers WHERE ' + where, params
+                    ).fetchone()[0]
+                    transfers = con.execute(
+                        '''SELECT id,from_user_id,to_user_id,amount,created_at
+                           FROM transfers WHERE ''' + where +
+                        ' ORDER BY created_at DESC,id DESC LIMIT ?',
+                        (*params, limit)).fetchall()
+                if mode in ('all', 'purchases'):
+                    total_purchases = con.execute('''SELECT COUNT(*) FROM purchases
+                        WHERE platform=? AND user_id=?''',
+                        (ctx.platform, ctx.user_id)).fetchone()[0]
+                    purchases = con.execute('''SELECT item_key,purchased_at FROM purchases
+                        WHERE platform=? AND user_id=?
+                        ORDER BY purchased_at DESC,rowid DESC LIMIT ?''',
+                        (ctx.platform, ctx.user_id, limit)).fetchall()
+
             entries = []
             for item in transfers:
                 income = item['to_user_id'] == ctx.user_id
@@ -601,21 +658,31 @@ class BotService:
             for item in purchases:
                 key = item['item_key']
                 title = SHOP[key][0] if key in SHOP else str(key)[:32]
-                label = f'🛍 Значок «{title}»'
-                entries.append((item['purchased_at'], 0, key, label))
-            if not entries:
+                entries.append((item['purchased_at'], 0, key, f'🛍 Значок «{title}»'))
+
+            total = total_transfers + total_purchases
+            if not total:
                 return ('🧾 ВЫПИСКА КВЕРАТО\n'
-                        'Пока нет переводов и покупок значков.\n'
+                        'Пока нет переводов и покупок значков по выбранному фильтру.\n'
                         'ℹ️ Выписка видна только тебе в личных сообщениях.')
-            entries.sort(key=lambda item: (-item[0], -item[1], str(item[2])), reverse=False)
+            pages = min(20, (total + 9) // 10)
+            if page > pages:
+                return f'🧾 Для этого фильтра доступно страниц: {pages}. ' + help_text
+            entries.sort(key=lambda item: (item[0], item[1], item[2]), reverse=True)
+            start = (page - 1) * 10
+            selected = entries[start:start + 10]
+            if not selected:
+                return '🧾 На этой странице записей нет. ' + help_text
             lines = []
-            for timestamp, _, _, label in entries[:10]:
+            for timestamp, _, _, label in selected:
                 stamp = datetime.fromtimestamp(timestamp, timezone.utc).strftime('%d.%m %H:%M UTC')
                 lines.append(f'• {stamp} — {label}')
-            return ('🧾 ВЫПИСКА КВЕРАТО\n'
-                    'Последние 10 переводов и покупок значков:\n'
+            suffix = '+' if total > 200 and pages == 20 else ''
+            return (f'🧾 ВЫПИСКА КВЕРАТО | {titles[mode]}\n'
+                    f'Страница {page}/{pages}{suffix} • Записей: {total}\n'
                     + '\n'.join(lines)
-                    + '\nℹ️ Доступна только в личных сообщениях.')
+                    + '\nℹ️ Только в личных сообщениях. Фильтры: '
+                      'входящие / исходящие / переводы / покупки.')
         if cmd == 'transfer':
             return self._transfer(ctx, args, now)
         if cmd in ('coin', 'dice', 'guess'):

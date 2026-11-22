@@ -15,6 +15,7 @@
    python tools/rewards_smoke.py
    python tools/goals_smoke.py
    python tools/economy_regression.py
+   python tools/statement_pagination_smoke.py
    python tools/repo_health.py
    python tools/check_docs_links.py
    ~~~

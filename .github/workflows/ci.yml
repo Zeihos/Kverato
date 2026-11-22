@@ -47,6 +47,8 @@ jobs:
         run: python tools/goals_smoke.py
       - name: Проверить переводы, покупки и приватную выписку
         run: python tools/economy_regression.py
+      - name: Проверить фильтры и страницы истории операций
+        run: python tools/statement_pagination_smoke.py
 
   windows:
     name: Windows · игровой Smoke Test
@@ -74,3 +76,5 @@ jobs:
         run: python tools/goals_smoke.py
       - name: Проверить экономику и выписку на Windows
         run: python tools/economy_regression.py
+      - name: Проверить фильтры и страницы выписки на Windows
+        run: python tools/statement_pagination_smoke.py

@@ -106,7 +106,7 @@ HELP = '''👑 КВЕРАТО — игровой Discord-бот
 🌆 /city · /businesses · /garage · /pets
 🏆 /top · /topxp · /topwins · /catalog
 🤝 /transfer — перевод виртуальных монет другому игроку
-🧾 /transfers — личная история входящих и исходящих переводов
+🧾 /statement — выписка с фильтрами и страницами; /transfers — история переводов
 ⚔️ /duel — вызов; /duels — активная дуэль, /duelhistory — история
    /duelstats — личная статистика побед и поражений
    /accept /decline /cancelduel — управление ставкой
