@@ -42,7 +42,7 @@
 | **Discord** | [Скачать Discord 1.0](releases/v1.0/KVERATO-DISCORD-v1.0-FINAL.zip) | [bots/discord](bots/discord) |
 | **Полный комплект** | **[Скачать все три версии](releases/v1.0/KVERATO-v1.0-FULL-RELEASE.zip)** | Три независимых бота |
 
-Архивы первого релиза **1.0** оставлены без изменений. В папке [bots](bots) ведётся разработка **1.1.0-dev.5** (тестовая версия, ещё не новый релиз).
+Архивы первого релиза **1.0** оставлены без изменений. В папке [bots](bots) ведётся разработка **1.1.0-dev.6** (тестовая версия, ещё не новый релиз).
 
 ## Возможности
 
@@ -131,6 +131,7 @@ python tools/rewards_smoke.py
 python tools/goals_smoke.py
 python tools/economy_regression.py
 python tools/statement_pagination_smoke.py
+python tools/upgrade_from_v1_smoke.py
 python tools/check_docs_links.py
 python -m compileall -q bots
 ~~~
@@ -145,6 +146,7 @@ GitHub Actions проверяет исходники, архивы, основн
 | [Возможности](docs/FEATURES.md) | Основные игровые механики |
 | [Частые вопросы](docs/FAQ.md) | Токены, команды, SQLite, исправление ошибок |
 | [План развития](docs/ROADMAP.md) | Над чем планируется работа |
+| [Безопасное обновление с 1.0](docs/UPGRADING_V1.md) | Копии, миграция и проверка базы |
 | [История изменений](CHANGELOG.md) | Релиз 1.0 и текущая разработка |
 | [Контрольный список релиза](docs/RELEASE_CHECKLIST.md) | Безопасный выпуск новых версий |
 | [Архитектура](docs/ARCHITECTURE.md) | Структура исходников |

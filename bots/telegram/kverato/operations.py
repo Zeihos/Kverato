@@ -86,6 +86,8 @@ def snapshot(source: str | Path, dest: str | Path) -> tuple[Path, str]:
 def daily_prestart_backup(source: str | Path, backup_dir: str | Path,
                           *, now: datetime | None = None, keep: int = 14) -> Path | None:
     """Protect the pre-migration database once per UTC day (max `keep` copies)."""
+    if isinstance(keep, bool) or not isinstance(keep, int) or not 1 <= keep <= 365:
+        raise ValueError('Backup retention must be an integer from 1 to 365 days')
     source = Path(source)
     if not source.is_file():
         return None  # First installation has no user data.
