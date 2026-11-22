@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import sqlite3
+from contextlib import closing
 import subprocess
 import sys
 import tempfile
@@ -69,7 +70,7 @@ from kverato.operations import (
 path = Path(sys.argv[1])
 backup = path.with_name("before_upgrade.sqlite3")
 target, digest = snapshot(path, backup)
-assert target == backup and len(digest) == 64
+assert target.samefile(backup) and len(digest) == 64
 assert verify_sqlite(backup)[0] and verify_checksum(backup)
 assert not verify_checksum(path), "Original should not have a .sha256 sidecar"
 
@@ -162,7 +163,7 @@ def quote(name: str) -> str:
 def table_snapshot(dbpath: Path, original=None):
     """Take all rows in original table columns, including older player fields."""
     result = {}
-    with sqlite3.connect(dbpath) as con:
+    with closing(sqlite3.connect(dbpath)) as con:
         tables = [
             row[0] for row in con.execute(
                 "SELECT name FROM sqlite_master WHERE type='table' "
@@ -212,7 +213,7 @@ def check_one(platform: str, zip_name: str, zip_tag: str) -> None:
         backup = temp / "before_upgrade.sqlite3"
         backed = table_snapshot(backup, old)
         assert backed == old, "Pre-upgrade snapshot did not preserve v1.0 rows"
-        with sqlite3.connect(dbpath) as con:
+        with closing(sqlite3.connect(dbpath)) as con:
             assert con.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
             assert con.execute("PRAGMA foreign_key_check").fetchone() is None
         print(
