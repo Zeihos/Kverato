@@ -621,6 +621,19 @@ class Database:
                         REFERENCES players(platform, user_id) ON DELETE CASCADE
                 )
             ''')
+            # v1.1 dev: opt-in savings targets; never reserve or move player coins.
+            con.execute('''
+                CREATE TABLE IF NOT EXISTS savings_goals (
+                    platform TEXT NOT NULL,
+                    user_id TEXT NOT NULL,
+                    target_coins INTEGER NOT NULL
+                        CHECK (target_coins BETWEEN 1 AND 1000000000000),
+                    updated_at INTEGER NOT NULL CHECK (updated_at >= 0),
+                    PRIMARY KEY (platform, user_id),
+                    FOREIGN KEY (platform, user_id)
+                        REFERENCES players(platform, user_id) ON DELETE CASCADE
+                )
+            ''')
             # Idempotent migration: add columns without replacing old player rows.
             columns = {row['name'] for row in con.execute('PRAGMA table_info(players)')}
             for name, definition in (
