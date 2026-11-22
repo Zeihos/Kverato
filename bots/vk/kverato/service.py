@@ -62,6 +62,7 @@ ALIASES = {
     'economy': 'economy', 'экономика': 'economy',
     'administration': 'administration', 'админ': 'administration', 'admin': 'administration', 'модерация': 'administration',
     'transfer': 'transfer', 'перевести': 'transfer', 'передать': 'transfer',
+    'statement': 'statement', 'выписка': 'statement', 'операции': 'statement',
     'bank': 'bank', 'банк': 'bank',
     'deposit': 'deposit', 'вклад': 'deposit', 'положить': 'deposit',
     'withdraw': 'withdraw', 'снять': 'withdraw',
@@ -269,7 +270,7 @@ class BotService:
 профиль · уровень · достижения · инвентарь
 
 💰 ЭКОНОМИКА
-баланс · цель · награды · банк · бонус · неделя · работа · профессии · бизнесы
+баланс · цель · награды · выписка · банк · бонус · неделя · работа · профессии · бизнесы
 
 🛍 ПОКУПКИ И ИМУЩЕСТВО
 магазин · питомцы · контейнеры · дом · гараж
@@ -293,7 +294,7 @@ class BotService:
                     '👤 профиль / баланс / цель / уровень / статистика\n'
                     '💼 работа / профессии / профессия курьер / карьера\n'
                     '🎁 награды / бонус / неделя / задания / награда / серия\n'
-                    '🏦 банк / вклад 100 / снять 100 / перевести ID 50\n'
+                    '🏦 банк / вклад 100 / снять 100 / перевести ID 50 / выписка\n'
                     '🏢 бизнесы / бизнес / бизнес купить мастерская\n'
                     '🐾 питомец / питомец каталог / питомец купить ember\n'
                     '🎁 контейнер / контейнер купить starter / контейнер открыть starter\n'
@@ -574,6 +575,47 @@ class BotService:
             return (f'💼 Работа выполнена! +{salary} монет. Карьерный ранг: {rank}/5 (+20 карьерного XP).'
                     + (suffix(['💼 Первая зарплата']) if gained else '')
                     + (suffix(['📈 Карьерист']) if career_achievement else ''))
+        if cmd == 'statement':
+            if ctx.group:
+                return '🔒 Личная выписка доступна только в сообщениях с ботом.'
+            # Collect only this player's records, strictly scoped to one platform.
+            # This is display-only; it does not reserve, send or charge any coins.
+            with closing(self.db.connect()) as con:
+                transfers = con.execute('''SELECT id,from_user_id,to_user_id,amount,created_at
+                    FROM transfers WHERE platform=?
+                        AND (from_user_id=? OR to_user_id=?)
+                    ORDER BY created_at DESC,id DESC LIMIT 10''',
+                    (ctx.platform, ctx.user_id, ctx.user_id)).fetchall()
+                purchases = con.execute('''SELECT item_key,purchased_at FROM purchases
+                    WHERE platform=? AND user_id=?
+                    ORDER BY purchased_at DESC,rowid DESC LIMIT 10''',
+                    (ctx.platform, ctx.user_id)).fetchall()
+            entries = []
+            for item in transfers:
+                income = item['to_user_id'] == ctx.user_id
+                other = item['from_user_id'] if income else item['to_user_id']
+                symbol = '↙ +' if income else '↗ −'
+                relation = 'от' if income else 'для'
+                label = f'{symbol}{item["amount"]:,} монет {relation} игрока {other}'.replace(',', ' ')
+                entries.append((item['created_at'], 1, item['id'], label))
+            for item in purchases:
+                key = item['item_key']
+                title = SHOP[key][0] if key in SHOP else str(key)[:32]
+                label = f'🛍 Значок «{title}»'
+                entries.append((item['purchased_at'], 0, key, label))
+            if not entries:
+                return ('🧾 ВЫПИСКА КВЕРАТО\n'
+                        'Пока нет переводов и покупок значков.\n'
+                        'ℹ️ Выписка видна только тебе в личных сообщениях.')
+            entries.sort(key=lambda item: (-item[0], -item[1], str(item[2])), reverse=False)
+            lines = []
+            for timestamp, _, _, label in entries[:10]:
+                stamp = datetime.fromtimestamp(timestamp, timezone.utc).strftime('%d.%m %H:%M UTC')
+                lines.append(f'• {stamp} — {label}')
+            return ('🧾 ВЫПИСКА КВЕРАТО\n'
+                    'Последние 10 переводов и покупок значков:\n'
+                    + '\n'.join(lines)
+                    + '\nℹ️ Доступна только в личных сообщениях.')
         if cmd == 'transfer':
             return self._transfer(ctx, args, now)
         if cmd in ('coin', 'dice', 'guess'):

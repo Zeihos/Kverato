@@ -44,7 +44,7 @@ BUTTONS = {
     ),
     'economy': (
         ('💰 Баланс', 'balance'), ('🏦 Банк', 'bank'),
-        ('🎯 Моя цель', 'goal'),
+        ('🎯 Моя цель', 'goal'), ('🧾 Выписка', 'statement'),
         ('🎁 Награды и таймеры', 'rewards'),
         ('💼 Профессии', 'jobs'), ('🏢 Бизнесы', 'businesses'),
         ('🏠 Недвижимость', 'home'), ('🚘 Транспорт', 'vehicle'),
@@ -92,7 +92,7 @@ BUTTONS = {
 }
 
 # Expedition with zero arguments shows status only (never starts a run).
-SAFE_COMMANDS = frozenset(CARD_COMMANDS) | frozenset({'expedition', 'duel', 'rep', 'duelhistory', 'rules', 'privacy', 'rewards', 'goal'})
+SAFE_COMMANDS = frozenset(CARD_COMMANDS) | frozenset({'expedition', 'duel', 'rep', 'duelhistory', 'rules', 'privacy', 'rewards', 'goal', 'statement'})
 MENU_ALIASES = frozenset({'menu', 'меню'})
 
 
