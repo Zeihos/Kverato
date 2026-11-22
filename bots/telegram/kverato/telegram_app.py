@@ -267,6 +267,7 @@ class TelegramApp:
                 '/menu — меню с кнопками\n'
                 '/profile — профиль и карточка\n'
                 '/balance — баланс\n'
+                '/goal — цель накопления (goal set 5000)\n'
                 '/daily — ежедневная награда\n'
                 '/weekly — награда раз в 7 дней\n'
                 '/rewards — таймеры наград и работы\n'

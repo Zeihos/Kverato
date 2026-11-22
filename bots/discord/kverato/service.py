@@ -45,6 +45,7 @@ ALIASES = {
     'help': 'help', 'помощь': 'help', 'команды': 'help', 'menu': 'help', 'меню': 'help',
     'profile': 'profile', 'профиль': 'profile', 'проф': 'profile',
     'balance': 'balance', 'баланс': 'balance',
+    'goal': 'goal', 'цель': 'goal', 'накопить': 'goal',
     'level': 'level', 'уровень': 'level', 'ранг': 'level',
     'daily': 'daily', 'ежедневно': 'daily', 'бонус': 'daily',
     'weekly': 'weekly', 'неделя': 'weekly', 'еженедельно': 'weekly',
@@ -268,7 +269,7 @@ class BotService:
 профиль · уровень · достижения · инвентарь
 
 💰 ЭКОНОМИКА
-баланс · награды · банк · бонус · неделя · работа · профессии · бизнесы
+баланс · цель · награды · банк · бонус · неделя · работа · профессии · бизнесы
 
 🛍 ПОКУПКИ И ИМУЩЕСТВО
 магазин · питомцы · контейнеры · дом · гараж
@@ -289,7 +290,7 @@ class BotService:
         if cmd == 'help':
             return ('👑 КВЕРАТО | КОМАНДЫ\n\n'
                     '📚 каталог — полные списки товаров и систем\n'
-                    '👤 профиль / баланс / уровень / статистика\n'
+                    '👤 профиль / баланс / цель / уровень / статистика\n'
                     '💼 работа / профессии / профессия курьер / карьера\n'
                     '🎁 награды / бонус / неделя / задания / награда / серия\n'
                     '🏦 банк / вклад 100 / снять 100 / перевести ID 50\n'
@@ -440,6 +441,66 @@ class BotService:
                               WHERE platform=? AND user_id=?''', (amount, now, streak, ctx.platform, ctx.user_id))
                 gained = unlock(con, ctx, 'streak3', now) if streak >= 3 else False
             return (f'🎁 Ежедневный бонус: +200 монет! 🔥 Серия: {streak}.' + (f' Дополнительно за серию: +{amount-200} монет.' if amount > 200 else '') + (suffix(['🔥 Постоянный гость']) if gained else ''))
+        if cmd == 'goal':
+            help_text = ('🎯 Цель накопления: цель 5000 / goal set 5000 / '
+                         'цель удалить. Учитываются только монеты в кошельке.')
+            if args:
+                action = args[0].lower()
+                if action in ('clear', 'reset', 'удалить', 'сбросить') and len(args) == 1:
+                    with self.db.transaction() as con:
+                        removed = con.execute('''DELETE FROM savings_goals
+                            WHERE platform=? AND user_id=?''',
+                            (ctx.platform, ctx.user_id)).rowcount
+                    return ('🗑 Цель накопления удалена.'
+                            if removed else 'ℹ️ У тебя пока нет цели накопления.')
+                if action in ('set', 'установить', 'поставить'):
+                    if len(args) != 2:
+                        return help_text
+                    amount_text = args[1]
+                elif action in ('show', 'status', 'показать', 'статус') and len(args) == 1:
+                    amount_text = None
+                elif len(args) == 1:
+                    amount_text = args[0]
+                else:
+                    return help_text
+                if amount_text is not None:
+                    if (not 1 <= len(amount_text) <= 13 or not amount_text.isascii()
+                            or not amount_text.isdecimal()):
+                        return '⚠ Укажи целое число от 1 до 1 000 000 000 000. ' + help_text
+                    target = int(amount_text)
+                    if not 1 <= target <= MAX_WALLET:
+                        return '⚠ Цель должна быть от 1 до 1 000 000 000 000 монет.'
+                    with self.db.transaction() as con:
+                        con.execute('''INSERT INTO savings_goals
+                            (platform, user_id, target_coins, updated_at)
+                            VALUES (?, ?, ?, ?)
+                            ON CONFLICT(platform, user_id)
+                            DO UPDATE SET target_coins=excluded.target_coins,
+                                          updated_at=excluded.updated_at''',
+                            (ctx.platform, ctx.user_id, target, now))
+                    return f'🎯 Новая цель: {target:,} монет. Используй «цель», чтобы увидеть прогресс.'.replace(',', ' ')
+
+            with self.db.connect() as con:
+                player = self._player(con, ctx)
+                row = con.execute('''SELECT target_coins FROM savings_goals
+                    WHERE platform=? AND user_id=?''',
+                    (ctx.platform, ctx.user_id)).fetchone()
+            if row is None:
+                return '🎯 Цель пока не установлена. Пример: цель 5000. Учитывается только кошелёк.'
+            target = row['target_coins']
+            coins = player['coins']
+            percent = min(100, coins * 100 // target)
+            filled = min(10, coins * 10 // target)
+            bar = '■' * filled + '□' * (10 - filled)
+            remaining = max(0, target - coins)
+            stage = ('✅ Цель достигнута!' if not remaining
+                     else f'⏳ Осталось {remaining:,} монет.'.replace(',', ' '))
+            return (f'🎯 КВЕРАТО | ЦЕЛЬ НАКОПЛЕНИЯ\n'
+                    f'💰 Кошелёк: {coins:,} монет\n'
+                    f'🏁 Цель: {target:,} монет\n'
+                    f'📊 Прогресс: {percent}% {bar}\n'
+                    f'{stage}\n'
+                    'ℹ️ Монеты не резервируются; банковский вклад не учитывается.').replace(',', ' ')
         if cmd == 'rewards':
             with self.db.connect() as con:
                 player = self._player(con, ctx)
